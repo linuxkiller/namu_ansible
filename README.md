@@ -10,8 +10,8 @@
      ...
      
 ## * Project: 실제 프로젝트에 사용된 YAML or Template 파일 공유 공간
-     /install_ubuntu_14.04.6               : R5 Ubuntu 14.0.6 버전 설치 프로젝트
-     /upgrade_ubuntu_minor_version   : 21C Ubuntu 마이너 버전 업데이트 프로젝트
+     /install_ubuntu_14.04.6                : R5 Ubuntu 14.0.6 버전 설치 프로젝트
+     /upgrade_ubuntu_minor_version          : 21C Ubuntu 마이너 버전 업데이트 프로젝트
      ...
      
 ## * Study_Room: 공부 공간 
