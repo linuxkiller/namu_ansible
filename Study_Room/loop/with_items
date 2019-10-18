@@ -1,0 +1,13 @@
+## 표준 루프 동작 - with_items
+
+- name: add test users
+  user: name={{ item }} state=present groups=testGroup
+  with_items:
+    - myTestUser1
+    - myTestUser2
+    - myTestUser3
+    
+1) with_items 밑으로 3명의 테스트 계정을 정의 
+2) user 모듈의 item 부분에 myTestUser1 계정명을 할당 
+3) user 모듈의 present 상태를 확인 및 myTestUser1 계정을 생성하고 testGroup 그룹 할당
+4) 2~3번 반복하면서 myTestUser2,3 생성
