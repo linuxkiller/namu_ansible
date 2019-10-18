@@ -1,0 +1,123 @@
+---
+- hosts: all
+  become: yes
+
+  tasks:
+#----------------- Change file name (apt.conf, sources.list) -----------------
+    - name: change file name if exist (apt.conf)
+      stat: 
+        path: /etc/apt/apt.conf
+      register: stat_result
+
+    - name: move apt.conf to apt.conf.namu
+      command: mv /etc/apt/apt.conf /etc/apt/apt.conf.namu
+      when: stat_result.stat.exists == True
+
+    - name: change file name if exist (sources.list)
+      stat: 
+        path: /etc/apt/sources.list
+      register: stat_result
+
+    - name: move sources.list to sources.list.namu
+      command: mv /etc/apt/sources.list /etc/apt/sources.list.namu
+      when: stat_result.stat.exists == True
+
+
+#---------------------------- Add Repositories -----------------------------
+    - name: add apt repo (trusty main restricted)
+      apt_repository:
+        repo: 'deb [ arch=amd64 ] http://{{update_server}}/ubuntu trusty main restricted'
+        state: present 
+        update_cache: yes
+
+    - name: add apt repo (trusty universe)
+      apt_repository:
+        repo: 'deb [ arch=amd64 ] http://{{update_server}}/ubuntu trusty universe'
+        state: present 
+        update_cache: yes
+
+    - name: add apt repo (trusty-updates restricted)
+      apt_repository:
+        repo: 'deb [ arch=amd64 ] http://{{update_server}}/ubuntu trusty-updates main restricted'
+        state: present 
+        update_cache: yes
+ 
+#---------------------------- Upload aptitude.. -----------------------------
+    #- name: find packages (aptitude...) & upload packages (aptitude...)
+    #  find: paths="/home/updater/Ansible/pkgs" recurse=no patterns="*.deb"
+    #  register: files_to_copy
+    #- copy: src={{ item.path }} dest=/var/cache/apt/archives
+    #  with_items: "{{ files_to_copy.files }}"
+
+    - name: upload aptitude..
+      copy: src={{ item.src }} dest={{ item.dest }}
+      with_items:
+        - { src: '/home/updater/Ansible/pkgs/aptitude_0.6.8.2-1ubuntu4_amd64.deb', dest: '/var/cache/apt/archives/' }
+        - { src: '/home/updater/Ansible/pkgs/aptitude-common_0.6.8.2-1ubuntu4_all.deb', dest: '/var/cache/apt/archives/' }
+        - { src: '/home/updater/Ansible/pkgs/libcwidget3_0.5.16-3.5ubuntu1_amd64.deb', dest: '/var/cache/apt/archives/' }
+        - { src: '/home/updater/Ansible/pkgs/libboost-iostreams1.54.0_1.54.0-4ubuntu3.1_amd64.deb', dest: '/var/cache/apt/archives/' }
+        - { src: '/home/updater/Ansible/pkgs/libept1.4.12_1.0.12_amd64.deb', dest: '/var/cache/apt/archives/' }
+
+
+#------------------- Delete lock files (for apt update)----------------------
+    - name: delete lock file
+      file: path={{ item }} state=absent
+      with_items:
+          - /var/lib/dpkg/lock
+          - /var/cache/apt/archives/lock
+          - /var/lib/apt/lists/lock
+
+    - name: update apt lock
+      command: dpkg --configure -a
+
+#------------------ Install aptitude.. (for apt update)----------------------
+    - name: install specific packages (aptitude...) 
+      apt: name=aptitude state=present
+      with_items:
+          - aptitude
+          - aptitude-common
+          - libboost-iostreams1.54.0
+          - libcwidget3
+          - libept1.4.12
+
+#-------------------------- Upgrade All Packages -----------------------------
+    - name: upgrade all packages to the 14.04.6 version
+      apt: update_cache=yes upgrade=full
+
+#------------------------ Upgrade Specific Kernel ----------------------------
+    - name: upgrade specific kernel (4.4.0-142-generic)
+      apt: 
+        name: linux-image-4.4.0-142-generic
+        state: present
+
+#-------------- Upload initrd.img & megiaraid_sas.ko (for R640) --------------
+    - name: upload device driver & initrd.img (for R640) 
+      copy: src={{ item.src }} dest={{ item.dest }}
+      with_items:
+          - { src: '/home/updater/Ansible/pkgs/initrd.img-4.4.0-142-generic', dest: '/boot' }
+          - { src: '/home/updater/Ansible/pkgs/megaraid_sas.ko', dest: '/lib/modules/4.4.0-142-generic/kernel/drivers/scsi/megaraid/' }
+
+#----------------- Change file name (apt.conf.namu, sources.list.namu) -----------------
+    - name: change file name if exist (apt.conf.namu)
+      stat: 
+        path: /etc/apt/apt.conf.namu
+      register: stat_result
+
+    - name: move apt.conf.namu to apt.conf
+      command: mv /etc/apt/apt.conf.namu /etc/apt/apt.conf
+      when: stat_result.stat.exists == True
+
+    - name: change file name if exist (sources.list.namu)
+      stat: 
+        path: /etc/apt/sources.list.namu
+      register: stat_result
+
+    - name: move sources.list.namu to sources.list
+      command: mv /etc/apt/sources.list.namu /etc/apt/sources.list
+      when: stat_result.stat.exists == True
+
+#-----------------------------------  Reboot  --------------------------------
+    - name: reboot the server
+      command: reboot
+      async: 0
+      poll: 0

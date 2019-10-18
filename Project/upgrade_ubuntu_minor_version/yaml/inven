@@ -1,0 +1,11 @@
+[all:vars]
+sshd_user_pam=no
+sshd_password_authentication=no
+sshd_challenge_response_authentication=no
+sshd_permitroot_login=no
+update_server=10.91.18.58
+user=partner
+
+[TEST]
+#10.91.16.203
+10.91.16.205

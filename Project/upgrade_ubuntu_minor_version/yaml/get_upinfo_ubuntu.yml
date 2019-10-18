@@ -1,0 +1,33 @@
+
+---
+- hosts: all
+  become: yes
+
+  tasks:
+#---------------------------- create a result file -----------------------------
+    - name: create result file 
+      file: 
+        path: "{{ ansible_hostname }}.{{ ansible_date_time.date }}"
+        state: touch 
+ 
+    - name: get kernel info
+      shell: uname -r > "{{ansible_hostname}}.{{ansible_date_time.date}}"
+
+    - name: get kernel info
+      shell: cat /etc/lsb-release | grep DES | cut -d"=" -f2 >> "{{ansible_hostname}}.{{ansible_date_time.date}}"
+
+    - name: megaraid_sas
+      shell: modinfo megaraid_sas | grep ^version | awk '{print $2}' >> "{{ansible_hostname}}.{{ansible_date_time.date}}"
+
+    - name: create result dir
+      connection: local
+      file:
+        path: ./update_result
+        state: directory
+        mode: 0777
+        
+    - name: get file "{{ansible_hostname}}.{{ansible_date_time.date}}" 
+      fetch: 
+        src: "{{ansible_hostname}}.{{ansible_date_time.date}}"
+        dest: ./update_result
+      

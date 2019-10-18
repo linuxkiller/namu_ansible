@@ -1,0 +1,61 @@
+---
+- hosts: all
+  become: yes
+  become_method: sudo
+
+  vars:
+    ssh_known_hosts_command: "ssh-keyscan -T 10"
+    ssh_known_hosts_path: "{{ lookup('env','HOME') + '/.ssh' }}"
+    ssh_known_hosts_file: "{{ lookup('env','HOME') + '/.ssh/known_hosts' }}"
+    ssh_known_hosts: "{{ groups['all'] }}"
+
+# ---------------------- Known_host For Repo Server -------------------------
+  tasks:
+
+  - name: Create a directory if it doesn't exist
+    file:
+      path: "{{ ssh_known_hosts_path }}"
+      state: directory
+  
+  - name: For each host, scan for its ssh public key
+    shell: "ssh-keyscan {{ item }},`dig +short {{ item }}`"
+    with_items: "{{ ssh_known_hosts }}"
+    register: ssh_known_host_results
+    ignore_errors: yes
+
+  - name: Add/update the public key in the '{{ ssh_known_hosts_file }}'
+    known_hosts:
+      name: "{{ item.item }}"
+      key: "{{ item.stdout }}"
+      path: "{{ ssh_known_hosts_file }}"
+    with_items: "{{ ssh_known_host_results.results }}"
+
+# ---------------------- Authorized_keys For Nodes -------------------------
+  #- name: ssh-keygen ansible-server
+    #connection: local
+    #command: /usr/bin/ssh-keygen -b 2048 -t rsa -f /home/{{user}}/.ssh/id_rsa -q -N ''
+    #ignore_errors: yes
+    #run_once: true
+
+  #- name: import id_rsa.pub
+    #connection: local
+    #command: "cat /home/{{user}}/.ssh/id_rsa.pub"
+    #register: id_pub
+    #run_once: true
+
+  #- name: create dir
+    #file:
+      #path: /home/{{user}}/.ssh
+      #state: directory
+
+  #- name: create file
+    #file:
+      #path: /home/{{user}}/.ssh/authorized_keys
+      #state: touch 
+
+  #- name: add ansible-node authrized keys
+    #lineinfile:
+      #dest: /home/{{user}}/.ssh/authorized_keys
+      #line: "{{ id_pub.stdout }}"
+
+
