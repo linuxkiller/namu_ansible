@@ -1,4 +1,4 @@
-# Ubuntu_Upgrade
+# Upgrade Ubuntu Minor Version
 Ubuntu14.04.2 -> Ubuntu14.04.6
 
 # README #
