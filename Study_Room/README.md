@@ -1,2 +1,3 @@
-# namu_ansible
-나무기술 GICT 본부 및 협력사를 위한 Ansible &amp; YAML 공유 공간 입니다. 
+# Study_Room
+
+* [ /loop ] : ansible 에서 사용하는 루프 문법 관련
